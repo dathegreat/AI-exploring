@@ -3,8 +3,7 @@ export const sigmoid = (x: number) =>{
 }
 
 export const d_sigmoid = (x: number) =>{
-    const sx = sigmoid(x)
-    return sx * (1 - sx)
+    return x * (1 - x)
 }
 
 export const loss = (actual: number, expected: number) =>{
@@ -12,7 +11,7 @@ export const loss = (actual: number, expected: number) =>{
 }
 
 export const d_loss = (actual: number, expected: number) =>{
-    return -(actual - expected)
+    return actual - expected
 }
 
 export const calculateNewWeight = (weight: number, learningRate: number, error: number) =>{
