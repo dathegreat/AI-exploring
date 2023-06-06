@@ -32,7 +32,7 @@ const trainingOutputs: number[][] = [
 
 
 
-const testNetwork = new NeuralNetwork(trainingInputs[0].length, 20, trainingOutputs[0].length)
+const testNetwork = new NeuralNetwork([trainingInputs[0].length, 3 , 2, trainingOutputs[0].length])
 
 // console.log("initial output: " + testNetwork.outputNeurons.map(neuron=>neuron.output))
 
@@ -45,6 +45,5 @@ const testNetwork = new NeuralNetwork(trainingInputs[0].length, 20, trainingOutp
 testNetwork.train(trainingInputs, trainingOutputs, 0.01, 200)
 
 testNetwork.feedForward([0,0])
-console.log(testNetwork.outputNeurons.map(neuron => neuron.output))
 
 

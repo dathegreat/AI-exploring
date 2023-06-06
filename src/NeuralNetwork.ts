@@ -1,20 +1,5 @@
-// const shuffle = (array: Array<any>) =>{
-//   let currentIndex = array.length,  randomIndex;
-//   // While there remain elements to shuffle.
-//   while (currentIndex != 0) {
-//     // Pick a remaining element.
-//     randomIndex = Math.floor(Math.random() * currentIndex);
-//     currentIndex--;
-//     // And swap it with the current element.
-//     [array[currentIndex], array[randomIndex]] = [
-//       array[randomIndex], array[currentIndex]];
-//   }
-//   return array;
-// }
-
 import { d_sigmoid, sum, d_loss, calculateNewWeight } from "./Math";
 import { Neuron } from "./Neuron";
-import { FeedForwardOutput, NeuronOutput } from "./Types";
 
 //https://machinelearningmastery.com/implement-backpropagation-algorithm-scratch-python/
 
@@ -24,61 +9,66 @@ const initializeNeurons = (amount: number, inputs: number): Neuron[] =>{
     })
 }
 
-export class NeuralNetwork{
-    hiddenNeurons: Neuron[]
-    outputNeurons: Neuron[]
+const checkNaN = (n: number) =>{
+    if(isNaN(n)){
+        throw "NOT A NUMBER";
+    }
+    return n
+}
 
-    constructor(inputLayerSize: number, hiddenLayerSize: number, outputLayerSize: number){
-        this.hiddenNeurons = initializeNeurons(hiddenLayerSize, inputLayerSize)
-        this.outputNeurons = initializeNeurons(outputLayerSize, hiddenLayerSize)
+export class NeuralNetwork{
+    layers: Neuron[][]
+
+    constructor(shape: number[]){
+        this.layers = new Array(shape.length)
+        for(let i=1; i<shape.length; i++){
+            this.layers[i] = initializeNeurons(shape[i], shape[i-1])
+        }
+        console.log(this.layers)
     }
 
     feedForward(inputs: number[]){
-        //feed input to hidden neurons
-        this.hiddenNeurons.map(neuron => neuron.feedForward(inputs))
-        //feed hidden output to output neurons
-        this.outputNeurons.map(neuron => neuron.feedForward(this.hiddenNeurons.map(hidden => hidden.output)))
+        //feed forward initial inputs
+        this.layers[0].map(neuron => neuron.feedForward(inputs))
+        //feed forward through hidden layers
+        for(let layer=1; layer<this.layers.length; layer++){
+            this.layers[layer].map(neuron => neuron.feedForward(this.layers[layer-1].map(previous => previous.output)))
+        }
     }
     //output neuron error calculated by [d_loss(neuron output) * d_sigmoid(neuron output)]
     //hidden neuron error calculated by [neuron weight * output neuron error * d_sigmoid(neuron output)]
     backPropagate(expectedOutputs: number[]){
-        this.outputNeurons.map(
-            (neuron, index) => {
-                neuron.errors = [d_loss(neuron.output, expectedOutputs[index]) * d_sigmoid(neuron.output)]
+        for(let i=0; i<this.outputNeurons.length; i++){
+            const neuron = this.outputNeurons[i]
+            neuron.errors = [d_loss(neuron.output, expectedOutputs[i]) * d_sigmoid(neuron.output)]
+            this.outputNeurons[i] = neuron
+        }
+        for(let i=this.hiddenNeurons.length-1; i>0; i--){
+            for(let j=0; j<this.hiddenNeurons[i].length; j++){
+                const neuron = this.hiddenNeurons[i][j]
+                neuron.errors[j] = neuron.weights[j] * this.hiddenNeurons[i+1][j].errors[j] * d_sigmoid(neuron.output)  
             }
-        )
-        this.hiddenNeurons.map(
-            (neuron, index) => {
-                neuron.errors = neuron.weights.map(
-                    weight => sum( this.outputNeurons.map( outputNeuron => (weight * outputNeuron.errors[0] * d_sigmoid(neuron.output)) ))
-                )
-            }
-        )
+        }
     }
 
     train(inputs: number[][], expectedOutputs: number[][], learningRate: number, epochs: number){
-        for(let i=0; i<epochs; i++){
-            for(let j=0; j<inputs.length; j++){
-                this.feedForward(inputs[j])
-                this.backPropagate(expectedOutputs[j])
+        for(let epoch=0; epoch<epochs; epoch++){
+            for(let input=0; input<inputs.length; input++){
+                this.feedForward(inputs[input])
+                this.backPropagate(expectedOutputs[input])
                 //update weights
-                //NOTE TO FUTURE D.A. this is what is breaking the code
-                for(const neuron of this.hiddenNeurons){
-                    neuron.weights = neuron.weights.map(
-                        (weight, index) => {
-                            return (weight - learningRate) * neuron.errors[index] * inputs[j][index]
-                        }) 
-                }
                 for(const neuron of this.outputNeurons){
-                    neuron.weights = neuron.weights.map(
-                        (weight, index) => {
-                            return (weight - learningRate) * neuron.errors[index] * this.hiddenNeurons[index].output
-                        })
+                    for(let i=0; i<neuron.weights.length; i++){
+                        neuron.weights[i] = neuron.weights[i] - (learningRate * neuron.errors[i] * this.hiddenNeurons[this.hiddenNeurons.length - 1][i].output)
+                    }
                 }
+                
             }
-            const totalError = Math.pow(sum(this.hiddenNeurons.map(neuron => sum(neuron.errors))) + sum(this.outputNeurons.map(neuron => sum(neuron.errors))), 2)
-            if(i % 100 == 0){
-                console.log(`EPOCH ${i}`)
+            if(epoch % 100 == 0){
+                const outputError = sum(this.outputNeurons.map(neuron => sum(neuron.errors)))
+                const hiddenError = sum(this.hiddenNeurons.map(layer => sum(layer.map( neuron => neuron.output))))
+                const totalError = Math.pow(hiddenError + outputError, 2)
+                console.log(`EPOCH ${epoch}`)
                 console.log(`ERROR: ${totalError}`)
             }
         }
