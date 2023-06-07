@@ -29,3 +29,7 @@ export const dot = (x: number[], y: number[]) =>{
 export const scale = (vector: number[], scale: number) =>{
     return vector.map((x) => x * scale)
 }
+//computes the element-wise product of two vectors
+export const hadamardProduct = (a: number[], b: number[]) =>{
+    return a.map((a_i, i) => a_i * b[i])
+}
