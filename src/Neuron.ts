@@ -5,14 +5,14 @@ export class Neuron{
     bias: number
     activation: number
     output: number
-    errors: number[]
+    gradient: number
 
     constructor(inputCount: number){
         this.weights = new Array(inputCount).fill(0).map(x => Math.random())
         this.bias = Math.random()
         this.activation = 0
         this.output = 0
-        this.errors = []
+        this.gradient = 0
     }
 
     feedForward(inputs: number[]){
