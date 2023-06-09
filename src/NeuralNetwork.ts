@@ -27,12 +27,11 @@ export class NeuralNetwork{
             this.layers[i] = initializeNeurons(shape[i], shape[i-1])
         }
         console.log("Initialized")
-        console.log(this.layers.map(layer => layer.map(neuron =>neuron.weights)))
-        console.log(this.layers[1][0].weights)
+        // console.log(this.layers[1][0].weights)
     }
 
     feedForward(inputs: number[]){
-        console.log("Feeding forward!")
+        // console.log("Feeding forward!")
         //feed forward initial inputs
         this.layers[0].map(neuron => neuron.feedForward(inputs))
         //feed forward through hidden layers
@@ -40,42 +39,50 @@ export class NeuralNetwork{
             const previousOutputs = this.layers[layer-1].map(neuron => neuron.output)
             this.layers[layer].map(neuron => neuron.feedForward(previousOutputs))
         }
-        console.log(this.layers.map(layer => layer.map(neuron =>neuron.weights)))
-        console.log(this.layers[1][0].weights)
+        // for(const layer of this.layers){
+        //     for( const neuron of layer){
+        //         if(isNaN(neuron.output)){console.log("feedforward failed")}
+        //     }
+        // }
+        // console.log(this.layers[1][0].weights)
     }
     //output neuron error calculated by [d_loss(neuron output) * d_sigmoid(neuron output)]
     //hidden neuron error calculated by [neuron weight * output neuron error * d_sigmoid(neuron output)]
     backPropagate(expectedOutputs: number[]){
-        console.log("Backpropagating!")
+        // console.log("Backpropagating!")
         //backprop output neurons
         for(let i=0; i<this.layers[this.layers.length - 1].length; i++){
             const neuron = this.layers[this.layers.length - 1][i]
             neuron.gradient = d_loss(neuron.output, expectedOutputs[i]) 
-            if(!neuron.gradient){console.log(
-                `Gradient does not exist on neuron [${this.layers.length - 1}][${i}]
-                weights   ${neuron.weights}
-                activation ${neuron.activation}
-                output ${neuron.output}`
-                )}
+            // if(!neuron.gradient){console.log(
+            //     `Gradient does not exist on neuron [${this.layers.length - 1}][${i}]
+            //     weights   ${neuron.weights}
+            //     activation ${neuron.activation}
+            //     output ${neuron.output}`
+            //     )}
+            // if(neuron.gradient){console.log("output gradient exists " + neuron.gradient)}
         }
         //backprop hidden layer neurons
         for(let i=this.layers.length - 2; i>0; i--){
-            for(let j=0; j<this.layers[i+1].length; j++){
+            for(let j=0; j<this.layers[i].length; j++){
                     const neuron = this.layers[i][j]
-                    const gradient = dot(this.layers[i+1][j].weights, this.layers[i+1].map(neuron => neuron.gradient))
+                    const previousLayerGradients = this.layers[i+1].map(neuron => neuron.gradient)
+                    const previousLayerWeights = this.layers[i+1].map(neuron => neuron.weights[j])
+                    const gradient = dot(previousLayerWeights, previousLayerGradients)
                     
                     neuron.gradient = gradient * d_sigmoid(neuron.output)
-                    if(!neuron.gradient){console.log(`
-    Gradient does not exist on neuron [${i}][${j}]
-        weights   ${neuron.weights}
-        activation ${neuron.activation}
-        output ${neuron.output}`
-                        )}
+    //                 if(!neuron.gradient){console.log(`
+    // Gradient does not exist on neuron [${i}][${j}]
+    //     weights   ${neuron.weights}
+    //     activation ${neuron.activation}
+    //     output ${neuron.output}`
+    //                     )}
+    //                 if(neuron.gradient){console.log(`Gradient DOES exist on neuron [${i}][${j}]`)}
             }
+            
         }
-        console.log("Backprop completed!")
-        console.log(this.layers.map(layer => layer.map(neuron =>neuron.weights)))
-        console.log(this.layers[1][0].weights)
+    //     console.log("Backprop completed!")
+    //     console.log(this.layers[1][0].weights)
     }
 
     train(inputs: number[][], expectedOutputs: number[][], learningRate: number, epochs: number){
@@ -92,9 +99,9 @@ export class NeuralNetwork{
                         }
                     }
                 }
-                console.log("Weights updated!")
-                console.log(this.layers.map(layer => layer.map(neuron =>neuron.weights)))
-                console.log(this.layers[1][0].weights)
+                // console.log("Weights updated!")
+                // console.log(this.layers.map(layer => layer.map(neuron =>neuron.weights)))
+                // console.log(this.layers[1][0].weights)
                 
             }
             if(epoch % 100 == 0){
@@ -104,6 +111,11 @@ export class NeuralNetwork{
                 console.log(`ERROR: ${totalError}`)
             }
         }
+    }
+
+    testInput(input: number[]){
+        this.feedForward(input)
+        return this.layers[this.layers.length-1].map(neuron => neuron.output)
     }
 
 }

@@ -1,10 +1,10 @@
 export const sigmoid = (x: number) =>{
-    if(isNaN(1 / (1 + Math.exp(-x)))){throw "absolutely sigmoid bonked. Input =  " + x}
+    // if(isNaN(1 / (1 + Math.exp(-x)))){throw "absolutely sigmoid bonked. Input =  " + x}
     return 1 / (1 + Math.exp(-x))
 }
 
 export const d_sigmoid = (x: number) =>{
-    if(isNaN(x * (1 - x))){throw "absolutely d_sigmoid bonked. Input =  " + x}
+    // if(isNaN(x * (1 - x))){throw "absolutely d_sigmoid bonked. Input =  " + x}
     return x * (1 - x)
 }
 
@@ -34,4 +34,8 @@ export const scale = (vector: number[], scale: number) =>{
 //computes the element-wise product of two vectors
 export const hadamardProduct = (a: number[], b: number[]) =>{
     return a.map((a_i, i) => a_i * b[i])
+}
+
+export const truncate = (str: string, characterLimit: number) =>{
+    return str.slice(0, characterLimit)
 }

@@ -7,3 +7,8 @@ export interface FeedForwardOutput{
     hiddenLayer: NeuronOutput[]
     outputLayer: NeuronOutput[]
 }
+
+export interface Point{
+    x: number
+    y: number
+}
