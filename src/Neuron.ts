@@ -9,7 +9,7 @@ export class Neuron{
     gradient: number
 
     constructor(inputCount: number){
-        this.weights = new Array(inputCount).fill(0).map(x => Math.random())
+        this.weights = new Array(inputCount).fill(0).map(x => -1 + (Math.random() * 2))
         this.bias = Math.random()
         this.activation = 0
         this.output = 0
@@ -23,9 +23,9 @@ export class Neuron{
 
     draw(ctx: CanvasRenderingContext2D, center: Point, radius: number){
         const outputString = truncate(this.output.toString(), 4)
-        const weightsString = this.weights.reduce((str, weight) => str + truncate(weight.toString(), 3) + " | ", "| ")
-        const biasString = truncate(this.bias.toString(), 3)
-        const gradientString = truncate(this.gradient.toString(), 3)
+        const weightsString = this.weights.reduce((str, weight) => str + truncate(weight.toString(), 4) + " | ", "| ")
+        const biasString = truncate(this.bias.toString(), 4)
+        const gradientString = truncate(this.gradient.toString(), 5)
         ctx.beginPath()
         ctx.arc(center.x, center.y, radius, 0, Math.PI * 2)
         ctx.stroke()

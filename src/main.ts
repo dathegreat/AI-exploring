@@ -28,12 +28,12 @@ const trainingInputs: number[][] = [
 ]
 
 const trainingOutputs: number[][] = [
-  [0], [1], [1], [0]
+  [0,1], [1,0], [1,0], [0,1]
 ]
 
 
 
-const testNetwork = new NeuralNetwork([trainingInputs[0].length, 2, 2, trainingOutputs[0].length])
+const testNetwork = new NeuralNetwork([trainingInputs[0].length, 4, 4, trainingOutputs[0].length])
 
 const neuronLocations: Point[][] = new Array(testNetwork.layers.length).fill([]).map(element => [])
 const scale = 150
@@ -46,8 +46,11 @@ for(let x=0; x<testNetwork.layers.length; x++){
 
 // testNetwork.layers.map((layer, x) => layer.map((neuron, y) => neuron.draw(ctx, neuronLocations[x][y], radius)))
 
-testNetwork.train(trainingInputs, trainingOutputs, 0.01, 10000)
+testNetwork.train(trainingInputs, trainingOutputs, 0.1, 1000)
 
 testNetwork.layers.map((layer, x) => layer.map((neuron, y) => neuron.draw(ctx, neuronLocations[x][y], radius)))
 
 console.log(testNetwork.testInput([0,1]))
+console.log(testNetwork.testInput([1,1]))
+console.log(testNetwork.testInput([1,0]))
+console.log(testNetwork.testInput([0,0]))

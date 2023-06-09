@@ -13,7 +13,7 @@ export const loss = (actual: number, expected: number) =>{
 }
 
 export const d_loss = (actual: number, expected: number) =>{
-    return actual - expected
+    return 2 * (actual - expected)
 }
 
 export const calculateNewWeight = (weight: number, learningRate: number, error: number) =>{
