@@ -12,3 +12,8 @@ export interface Point{
     x: number
     y: number
 }
+
+export interface TrainingData{
+    inputs: number[]
+    expected: number[]
+}

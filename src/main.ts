@@ -1,9 +1,10 @@
 //https://victorzhou.com/blog/intro-to-neural-networks/
 
 import { drawLittleGuy } from "./LittleGuy"
+import { ReLU, shuffle, sigmoid } from "./Math"
 import { NeuralNetwork } from "./NeuralNetwork"
 import { Neuron } from "./Neuron"
-import { Point } from "./Types"
+import { Point, TrainingData } from "./Types"
 
 
 const canvas = document.getElementById("littleGuy") as HTMLCanvasElement
@@ -23,17 +24,34 @@ const ctx = canvas.getContext("2d") as CanvasRenderingContext2D
 //   })
 // })
 
-const trainingInputs: number[][] = [
-  [0,0], [1,0], [0,1], [1,1]
-]
+// const unscaledTrainingInputs: number[][] = new Array(100).fill(1).map((x, index) => [index])
 
-const trainingOutputs: number[][] = [
-  [0,1], [1,0], [1,0], [0,1]
-]
+// const inputMin: number = Math.min(...unscaledTrainingInputs.flat())
+// const inputMax: number = Math.max(...unscaledTrainingInputs.flat())
 
+// const trainingInputs: number[][] = unscaledTrainingInputs.map((batch => batch.map(input => (input - inputMin) / (inputMax - inputMin))))
 
+// const trainingOutputs: number[][] = unscaledTrainingInputs.map(x => [Math.pow(x[0], 2)])
 
-const testNetwork = new NeuralNetwork([trainingInputs[0].length, 4, 4, trainingOutputs[0].length])
+// const trainingInputs: number[][] = [
+//   [0, 0], [0, 1], [1, 0], [1, 1] 
+// ]
+
+// const trainingOutputs: number[][] = [
+//   [0], [1], [1], [1]
+// ]
+
+const trainingInputs: number[][] = new Array(1000).fill(1).map((x, index) => [index])
+
+const trainingOutputs: number[][] = trainingInputs.map(x => [x[0] + 1])
+
+const trainingData: TrainingData[] = trainingInputs.map((input, index) => { return {inputs: input, expected: trainingOutputs[index]} } )
+
+const testNetwork = new NeuralNetwork(
+  [trainingInputs[0].length, trainingOutputs[0].length],
+  sigmoid,
+  ReLU
+)
 
 const neuronLocations: Point[][] = new Array(testNetwork.layers.length).fill([]).map(element => [])
 const scale = 150
@@ -46,11 +64,15 @@ for(let x=0; x<testNetwork.layers.length; x++){
 
 // testNetwork.layers.map((layer, x) => layer.map((neuron, y) => neuron.draw(ctx, neuronLocations[x][y], radius)))
 
-testNetwork.train(trainingInputs, trainingOutputs, 0.1, 1000)
+testNetwork.train(trainingData, 0.1, 1000)
 
 testNetwork.layers.map((layer, x) => layer.map((neuron, y) => neuron.draw(ctx, neuronLocations[x][y], radius)))
 
-console.log(testNetwork.testInput([0,1]))
-console.log(testNetwork.testInput([1,1]))
-console.log(testNetwork.testInput([1,0]))
-console.log(testNetwork.testInput([0,0]))
+console.log(testNetwork.layers[testNetwork.layers.length - 1])
+
+// console.log(testNetwork.testInput([0,0]))
+// console.log(testNetwork.testInput([0,1]))
+// console.log(testNetwork.testInput([1,0]))
+// console.log(testNetwork.testInput([1,1]))
+
+console.log(testNetwork.testInput([2]))

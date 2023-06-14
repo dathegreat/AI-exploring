@@ -1,3 +1,13 @@
+import { TrainingData } from "./Types"
+
+export const ReLU = (x: number) =>{
+    return Math.max(0, x)
+}
+
+export const d_ReLU = (x: number) =>{
+    return x < 0 ? 0 : 1
+}
+
 export const sigmoid = (x: number) =>{
     // if(isNaN(1 / (1 + Math.exp(-x)))){throw "absolutely sigmoid bonked. Input =  " + x}
     return 1 / (1 + Math.exp(-x))
@@ -38,4 +48,24 @@ export const hadamardProduct = (a: number[], b: number[]) =>{
 
 export const truncate = (str: string, characterLimit: number) =>{
     return str.slice(0, characterLimit)
+}
+
+export const getRandomWeight = () =>{
+    return -1 + (Math.random() * 2)
+}
+
+//Fisher-Yates shuffle algorithm
+export const shuffle = (array: TrainingData[]) =>{
+    let currentIndex = array.length,  randomIndex;
+    // While there remain elements to shuffle.
+    while (currentIndex != 0) {
+    // Pick a remaining element.
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex--;
+    // And swap it with the current element.
+    [array[currentIndex], array[randomIndex]] = [
+      array[randomIndex], array[currentIndex]];
+  }
+
+  return array;
 }
