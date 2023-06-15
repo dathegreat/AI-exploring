@@ -1,4 +1,4 @@
-import { d_sigmoid, sum, d_loss, hadamardProduct, scale, dot, d_ReLU, shuffle } from "./Math";
+import { d_sigmoid, sum, d_meanSquaredLoss, hadamardProduct, scale, dot, d_ReLU, shuffle, d_step, d_crossEntropyLoss, crossEntropyLoss } from "./Math";
 import { Neuron } from "./Neuron";
 import { TrainingData } from "./Types";
 
@@ -22,6 +22,7 @@ const checkNaN = (n: number) =>{
 
 export class NeuralNetwork{
     layers: Neuron[][]
+    errors: number[]
 
     constructor(shape: number[], hiddenLayerActivation: (x: number)=>number, outputLayerActivation: (x: number)=>number){
         this.layers = new Array(shape.length)
@@ -32,6 +33,7 @@ export class NeuralNetwork{
                 this.layers[i] = initializeNeurons(shape[i], shape[i-1], outputLayerActivation)
             }
         }
+        this.errors = []
         console.log("Initialized")
     }
 
@@ -50,24 +52,25 @@ export class NeuralNetwork{
         //backprop output neurons
         for(let i=0; i<this.layers[this.layers.length - 1].length; i++){
             const neuron = this.layers[this.layers.length - 1][i]
-            neuron.gradient = d_loss(neuron.output, expectedOutputs[i]) * d_ReLU(neuron.output)
+            const outputs = this.layers[this.layers.length -1].map(neuron => neuron.output)
+            neuron.gradient = d_crossEntropyLoss(outputs, expectedOutputs) * d_sigmoid(neuron.output)
             // console.log("backprop output")
             // neuron.print()
         }
         //backprop hidden layer neurons
         for(let i=this.layers.length - 2; i>=0; i--){
             for(let j=0; j<this.layers[i].length; j++){
-                    const neuron = this.layers[i][j]
-                    const previousLayerGradients = this.layers[i+1].map(neuron => neuron.gradient)
-                    const previousLayerWeights = this.layers[i+1].map(neuron => neuron.weights[j])
-                    neuron.gradient = dot(previousLayerWeights, previousLayerGradients) * d_sigmoid(neuron.output)
-                    // console.log("backprop hidden")
-                    // neuron.print()
+                const neuron = this.layers[i][j]
+                const previousLayerGradients = this.layers[i+1].map(neuron => neuron.gradient)
+                const previousLayerWeights = this.layers[i+1].map(neuron => neuron.weights[j])
+                neuron.gradient = dot(previousLayerWeights, previousLayerGradients) * d_ReLU(neuron.output)
+                // console.log("backprop hidden")
+                // neuron.print()
             }
         }
     }
 
-    train(trainingData: TrainingData[], learningRate: number, epochs: number){
+    train(trainingData: TrainingData[], learningRate: number, momentum: number, epochs: number){
         for(let epoch=0; epoch<epochs; epoch++){
             const data = shuffle(trainingData)
             for(let input=0; input<trainingData.length; input++){
@@ -79,8 +82,8 @@ export class NeuralNetwork{
                     for(let j=0; j<layer.length; j++){
                         const neuron = layer[j]
                         for(let k=0; k<neuron.weights.length; k++){
-                            const previousLayerOutput = i > 0 ? this.layers[i-1][k].output : data[i].inputs[j]
-                            neuron.weights[k] = neuron.weights[k] - (learningRate * neuron.gradient * previousLayerOutput)
+                            const neuronInput = i === 0 ? data[input].inputs[k] : this.layers[i-1][k].output
+                            neuron.weights[k] = neuron.weights[k] - (learningRate * neuron.gradient * neuronInput) - (momentum * neuron.weights[k])
                             neuron.bias = neuron.bias - (learningRate * neuron.gradient)
                         }
                     }
@@ -88,18 +91,14 @@ export class NeuralNetwork{
             }
             if (epoch % 10 === 0) {
                 let totalError = 0;
-          
-                for (let i = 0; i < data.length; i++) {
-                  const expectedOutput = data[i].expected;
-                  this.feedForward(data[i].inputs);
-                  const outputLayer = this.layers[this.layers.length - 1];
-                  const errors = outputLayer.map(
-                    (neuron, j) => expectedOutput[j] - neuron.output
-                  );
-                  const squaredErrors = errors.map((error) => Math.pow(error, 2));
-                  totalError += sum(squaredErrors) / data[i].inputs.length
+                for(let input=0; input<trainingData.length; input++){
+                    this.feedForward(data[input].inputs)
+                    const predictedValues = this.layers[this.layers.length - 1].map(neuron => neuron.output)
+                    const actualValues = data[input].expected
+                    totalError += crossEntropyLoss(predictedValues, actualValues) / predictedValues.length
                 }
-                console.log("EPOCH: " + epoch + " ERROR: " + totalError)
+                this.errors.push(totalError / trainingData.length)
+                console.log("EPOCH: " + epoch + " ERROR: " + totalError / trainingData.length)
             }
         }
     }

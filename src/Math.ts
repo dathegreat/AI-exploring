@@ -1,5 +1,13 @@
 import { TrainingData } from "./Types"
 
+export const step = (x: number) =>{
+    return x >= 0 ? 1 : 0
+}
+
+export const d_step = (x: number) =>{
+    return x
+}
+
 export const ReLU = (x: number) =>{
     return Math.max(0, x)
 }
@@ -18,12 +26,20 @@ export const d_sigmoid = (x: number) =>{
     return x * (1 - x)
 }
 
-export const loss = (actual: number, expected: number) =>{
-    return Math.pow(actual - expected, 2)
+export const crossEntropyLoss = (predicted: number[], actual: number[]) =>{
+    return sum(predicted.map((p, i) => ( -actual[i] * Math.log(p + Number.MIN_VALUE) ) - ( (1 - actual[i]) * Math.log(1 - p) )))
 }
 
-export const d_loss = (actual: number, expected: number) =>{
-    return 2 * (actual - expected)
+export const d_crossEntropyLoss = (predicted: number[], actual: number[]) =>{
+    return sum(predicted.map((p, i) => (-actual[i] / p) + ((1 - actual[i])/(1 - p))))
+}
+
+export const meanSquaredLoss = (predicted: number[], actual: number[]) =>{
+    return sum(predicted.map((p, i) => Math.pow(p - actual[i], 2)))
+}
+
+export const d_meanSquaredLoss = (predicted: number[], actual: number[]) =>{
+    return sum(predicted.map((p, i) => 2 * (p - actual[i])))
 }
 
 export const calculateNewWeight = (weight: number, learningRate: number, error: number) =>{
